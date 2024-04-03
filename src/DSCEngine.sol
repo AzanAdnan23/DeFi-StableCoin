@@ -26,6 +26,7 @@ pragma solidity 0.8.19;
 
 import {DecentralizedStableCoin} from "./DecentralizedStableCoin.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title DSCEngine
@@ -50,10 +51,28 @@ contract DSCEngine is ReentrancyGuard {
     error DSCEngine__NeedAmountMorethenZero();
     error DSCEngine__TokenAndPriceFeedLengthMismatch();
     error DSCEngine__TokenNotSupported();
+    error DSCEngine__TransferFailed();
+
+    ///////////////////
+    // State Variables //
+    ///////////////////
 
     mapping(address token => address priceFeed) s_priceFeeds; // Mapping of token address to price feed address
+
+    /// @dev Amount of collateral deposited by user
+    mapping(address user => mapping(address collateralToken => uint256 amount)) private s_collateralDeposited;
+
     DecentralizedStableCoin private immutable i_dsc;
 
+    ///////////////////
+    // Events
+    ///////////////////
+    event CollateralDeposited(address indexed user, address indexed token, uint256 indexed amount);
+    event CollateralRedeemed(address indexed redeemFrom, address indexed redeemTo, address token, uint256 amount); // if redeemFrom != redeemedTo, then it was liquidated
+
+    ///////////////////
+    // Modifiers
+    ///////////////////
     modifier MorethenZero(uint256 _amount) {
         revert DSCEngine__NeedAmountMorethenZero();
         _;
@@ -66,11 +85,10 @@ contract DSCEngine is ReentrancyGuard {
         _;
     }
 
-    constructor(
-        address[] memory _tokenAddresses,
-        address[] memory _priceFeedsAddresses,
-        address dscAddress
-    ) {
+    ///////////////////
+    // Functions
+    ///////////////////
+    constructor(address[] memory _tokenAddresses, address[] memory _priceFeedsAddresses, address dscAddress) {
         if (_tokenAddresses.length != _priceFeedsAddresses.length) {
             revert DSCEngine__TokenAndPriceFeedLengthMismatch();
         }
@@ -80,14 +98,20 @@ contract DSCEngine is ReentrancyGuard {
         i_dsc = DecentralizedStableCoin(dscAddress);
     }
 
-    function depositCollateral(
-        address _tokenCollateralAddress,
-        uint256 _amountCollateral
-    )
+    function depositCollateral(address _tokenCollateralAddress, uint256 _amountCollateral)
         external
         MorethenZero(_amountCollateral)
         IsAllowedToken(_tokenCollateralAddress)
-    {}
+        nonReentrant
+    {
+        s_collateralDeposited[msg.sender][_tokenCollateralAddress] += _amountCollateral;
+        emit CollateralDeposited(msg.sender, _tokenCollateralAddress, _amountCollateral);
+
+       bool sucess IERC20(_tokenCollateralAddress).transferFrom(msg.sender, address(this), _amountCollateral);
+        if(!sucess){
+           revert DSCEngine__TransferFailed();
+        }
+    }
 
     function depositCollateralAndMintDSC() external {}
 
