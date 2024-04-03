@@ -24,6 +24,8 @@
 
 pragma solidity 0.8.19;
 
+import {DecentralizedStableCoin} from "./DecentralizedStableCoin.sol";
+
 /**
  * @title DSCEngine
  * @author Azan Adnan
@@ -44,7 +46,39 @@ pragma solidity 0.8.19;
  * @notice This contract is based on the MakerDAO DSS system
  */
 contract DSCEngine {
-    function depositCollateral() external {}
+    error DSCEngine_NeedAmountMorethenZero();
+    error DSCEngine__TokenAndPriceFeedLengthMismatch();
+
+    mapping(address token => address priceFeed) s_priceFeeds; // Mapping of token address to price feed address
+    DecentralizedStableCoin immutable i_dsc;
+
+    modifier MorethenZero(uint256 _amount) {
+        revert DSCEngine_NeedAmountMorethenZero();
+        _;
+    }
+
+    // modifier IsAllowedToken(address _token) {
+    //     _;
+
+    // }
+
+    constructor(
+        address[] memory _tokenAddresses,
+        address[] memory _priceFeedsAddresses,
+        address dscAddress
+    ) {
+        if (_tokenAddresses.length != _priceFeedsAddresses.length) {
+            revert DSCEngine__TokenAndPriceFeedLengthMismatch();
+        }
+        for (uint256 i = 0; i < _tokenAddresses.length; i++) {
+            s_priceFeeds[_tokenAddresses[i]] = _priceFeedsAddresses[i];
+        }
+    }
+
+    function depositCollateral(
+        address tokenCollateralAddress,
+        uint256 amountCollateral
+    ) external MorethenZero(amountCollateral) {}
 
     function depositCollateralAndMintDSC() external {}
 
