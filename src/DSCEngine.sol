@@ -1,36 +1,15 @@
-// Layout of Contract:
-// version
-// imports
-// errors
-// interfaces, libraries, contracts
-// Type declarations
-// State variables
-// Events
-// Modifiers
-// Functions
-
-// Layout of Functions:
-// constructor
-// receive function (if exists)
-// fallback function (if exists)
-// external
-// public
-// internal
-// private
-// internal & private view & pure functions
-// external & public view & pure functions
-
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.19;
+pragma solidity 0.8.20;
 
 import {DecentralizedStableCoin} from "./DecentralizedStableCoin.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title DSCEngine
- * @author Azan Adnan
+ * @author @AzanAdnan23
  *
  * The system is designed to be as minimal as possible, and have the tokens maintain a 1 token == $1 peg at all times.
  * This is a stablecoin with the properties:
@@ -57,10 +36,14 @@ contract DSCEngine is ReentrancyGuard {
     // State Variables //
     ///////////////////
 
-    mapping(address token => address priceFeed) s_priceFeeds; // Mapping of token address to price feed address
+    /// @dev Mapping of token address to price feed address
+    mapping(address token => address priceFeed) private s_priceFeeds;
 
     /// @dev Amount of collateral deposited by user
     mapping(address user => mapping(address collateralToken => uint256 amount)) private s_collateralDeposited;
+
+    /// @dev Amount of DSC minted by user
+    mapping(address user => uint256 amountDscMinted) private s_DSCMinted;
 
     DecentralizedStableCoin private immutable i_dsc;
 
@@ -74,7 +57,9 @@ contract DSCEngine is ReentrancyGuard {
     // Modifiers
     ///////////////////
     modifier MorethenZero(uint256 _amount) {
-        revert DSCEngine__NeedAmountMorethenZero();
+        if (_amount == 0) {
+            revert DSCEngine__NeedAmountMorethenZero();
+        }
         _;
     }
 
@@ -98,6 +83,11 @@ contract DSCEngine is ReentrancyGuard {
         i_dsc = DecentralizedStableCoin(dscAddress);
     }
 
+    /**
+     *  Problem in transferfron msg.value should be used
+     * @param _tokenCollateralAddress: The ERC20 token address of the collateral you're depositing
+     * @param _amountCollateral: The amount of collateral you're depositing
+     */
     function depositCollateral(address _tokenCollateralAddress, uint256 _amountCollateral)
         external
         MorethenZero(_amountCollateral)
@@ -107,10 +97,18 @@ contract DSCEngine is ReentrancyGuard {
         s_collateralDeposited[msg.sender][_tokenCollateralAddress] += _amountCollateral;
         emit CollateralDeposited(msg.sender, _tokenCollateralAddress, _amountCollateral);
 
-       bool sucess IERC20(_tokenCollateralAddress).transferFrom(msg.sender, address(this), _amountCollateral);
-        if(!sucess){
-           revert DSCEngine__TransferFailed();
+        bool sucess = IERC20(_tokenCollateralAddress).transferFrom(msg.sender, address(this), _amountCollateral);
+        if (!sucess) {
+            revert DSCEngine__TransferFailed();
         }
+    }
+
+    /**
+     * @param _amountDscToMint: The amount of DSC you want to mint
+     * @notice You can only mint DSC if you hav enough collateral
+     */
+    function mintDsc(uint256 _amountDscToMint) public MorethenZero(_amountDscToMint) nonReentrant {
+        s_DSCMinted[msg.sender] += _amountDscToMint;
     }
 
     function depositCollateralAndMintDSC() external {}
@@ -119,11 +117,31 @@ contract DSCEngine is ReentrancyGuard {
 
     function redeemCollateralAndBurnDSC() external {}
 
-    function mintDSC() external {}
-
     function burnDSC() external {}
 
     function liquidate() external {}
 
     function getHealthFactor() external {}
 }
+
+// Layout of Contract:
+// version
+// imports
+// errors
+// interfaces, libraries, contracts
+// Type declarations
+// State variables
+// Events
+// Modifiers
+// Functions
+
+// Layout of Functions:
+// constructor
+// receive function (if exists)
+// fallback function (if exists)
+// external
+// public
+// internal
+// private
+// internal & private view & pure functions
+// external & public view & pure functions
