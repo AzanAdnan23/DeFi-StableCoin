@@ -45,6 +45,8 @@ contract DSCEngine is ReentrancyGuard {
     /// @dev Amount of DSC minted by user
     mapping(address user => uint256 amountDscMinted) private s_DSCMinted;
 
+    address[] private s_collateralTokens;
+
     DecentralizedStableCoin private immutable i_dsc;
 
     ///////////////////
@@ -79,6 +81,7 @@ contract DSCEngine is ReentrancyGuard {
         }
         for (uint256 i = 0; i < _tokenAddresses.length; i++) {
             s_priceFeeds[_tokenAddresses[i]] = _priceFeedsAddresses[i];
+            s_collateralTokens.push(_tokenAddresses[i]);
         }
         i_dsc = DecentralizedStableCoin(dscAddress);
     }
@@ -122,6 +125,25 @@ contract DSCEngine is ReentrancyGuard {
     function liquidate() external {}
 
     function getHealthFactor() external {}
+
+    ///////////////////
+    // Internal Functions
+    ///////////////////
+
+    function _getAccountInfo(address user)
+        private
+        view
+        returns (uint256 totalDscMinted, uint256 collateralValueInUsd)
+    {
+        totalDscMinted = s_DSCMinted[user];
+        collateralValueInUsd = getAccountCollateralValueInUsd(user);
+    }
+
+    function _checkhealthFactor(address user) private view returns (uint256) {}
+
+    function _revertIfHealthFactorBelowThreshold(address user) internal view {}
+
+    function getAccountCollateralValueInUsd(address user) public view returns (uint256) {}
 }
 
 // Layout of Contract:
