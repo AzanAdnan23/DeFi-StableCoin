@@ -7,6 +7,8 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+
 /**
  * @title DSCEngine
  * @author @AzanAdnan23
@@ -112,6 +114,7 @@ contract DSCEngine is ReentrancyGuard {
      */
     function mintDsc(uint256 _amountDscToMint) public MorethenZero(_amountDscToMint) nonReentrant {
         s_DSCMinted[msg.sender] += _amountDscToMint;
+        _revertIfHealthFactorBelowThreshold(msg.sender);
     }
 
     function depositCollateralAndMintDSC() external {}
@@ -139,11 +142,27 @@ contract DSCEngine is ReentrancyGuard {
         collateralValueInUsd = getAccountCollateralValueInUsd(user);
     }
 
+    /*
+    * Return how close a user is to liquidate
+    * If health factor is below 1, then user ican get liquidated1
+    */
+
     function _checkhealthFactor(address user) private view returns (uint256) {}
 
     function _revertIfHealthFactorBelowThreshold(address user) internal view {}
 
-    function getAccountCollateralValueInUsd(address user) public view returns (uint256) {}
+    // Public & External View Functions
+
+    function getAccountCollateralValueInUsd(address user) public view returns (uint256 totalCollateralValueInUsd) {
+        for (uint256 index = 0; index < s_collateralTokens.length; index++) {
+            address token = s_collateralTokens[index];
+            uint256 amount = s_collateralDeposited[user][token];
+            totalCollateralValueInUsd += _getUsdValue(token, amount);
+        }
+        return totalCollateralValueInUsd;
+    }
+
+    function _getUsdValue(address _token, uint256 _amount) public view returns (uint256) {}
 }
 
 // Layout of Contract:
