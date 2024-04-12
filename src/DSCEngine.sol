@@ -13,7 +13,7 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
  * @title DSCEngine
  * @author @AzanAdnan23
  *
- * The system is designed to be as minimal as possible, and have the tokens maintain a 1 token == $1 peg at all times.
+ * @notice The system is designed to be as minimal as possible, and have the tokens maintain a 1 token == $1 peg at all times.
  * This is a stablecoin with the properties:
  * - Exogenously Collateralized
  * - Dollar Pegged
@@ -34,6 +34,7 @@ contract DSCEngine is ReentrancyGuard {
     error DSCEngine__TokenNotSupported();
     error DSCEngine__TransferFailed();
     error DSCEngine__HealthFactorBelowThreshold(uint256 healthFactor);
+    error DSCEngine__MintFailed();
 
     ///////////////////
     // State Variables //
@@ -41,7 +42,7 @@ contract DSCEngine is ReentrancyGuard {
 
     uint256 private constant ADDITIONAL_FEED_PRECISION = 1e10;
     uint256 private constant PRECISION = 1e18;
-    uint256 private constant LIQUIDATION_THRESHOLD = 50; // * 200 % Collateral
+    uint256 private constant LIQUIDATION_THRESHOLD = 50; //  200 % Collateral
     uint256 private constant LIQUIDATION_PRECISION = 100;
     uint256 private constant MIN_HEALTH_FACTOR = 1;
 
@@ -95,8 +96,8 @@ contract DSCEngine is ReentrancyGuard {
         i_dsc = DecentralizedStableCoin(dscAddress);
     }
 
+    //  Problem in transferfron msg.value should be used
     /**
-     *  Problem in transferfron msg.value should be used
      * @param _tokenCollateralAddress: The ERC20 token address of the collateral you're depositing
      * @param _amountCollateral: The amount of collateral you're depositing
      */
@@ -122,6 +123,11 @@ contract DSCEngine is ReentrancyGuard {
     function mintDsc(uint256 _amountDscToMint) public MorethenZero(_amountDscToMint) nonReentrant {
         s_DSCMinted[msg.sender] += _amountDscToMint;
         _revertIfHealthFactorBelowThreshold(msg.sender);
+
+        bool minted = i_dsc.mint(msg.sender, _amountDscToMint);
+        if (!minted) {
+            revert DSCEngine__MintFailed();
+        }
     }
 
     function depositCollateralAndMintDSC() external {}
@@ -164,7 +170,7 @@ contract DSCEngine is ReentrancyGuard {
     function _revertIfHealthFactorBelowThreshold(address user) internal view {
         uint256 userHealthFactor = _healthFactor(user);
         if (userHealthFactor < MIN_HEALTH_FACTOR) {
-            revert("Health Factor is below threshold");
+            revert DSCEngine__HealthFactorBelowThreshold(userHealthFactor);
         }
     }
 
