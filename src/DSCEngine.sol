@@ -38,6 +38,9 @@ contract DSCEngine is ReentrancyGuard {
     // State Variables //
     ///////////////////
 
+    uint256 private constant ADDITIONAL_FEED_PRECISION = 1e10;
+    uint256 private constant PRECISION = 1e18;
+
     /// @dev Mapping of token address to price feed address
     mapping(address token => address priceFeed) private s_priceFeeds;
 
@@ -162,7 +165,15 @@ contract DSCEngine is ReentrancyGuard {
         return totalCollateralValueInUsd;
     }
 
-    function _getUsdValue(address _token, uint256 _amount) public view returns (uint256) {}
+    function _getUsdValue(address _token, uint256 _amount) public view returns (uint256) {
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[_token]);
+        (, int256 price,,,) = priceFeed.latestRoundData();
+        // 1 ETH = 1000 USD
+        // The returned value from Chainlink will be 1000 * 1e8
+        // Most USD pairs have 8 decimals, so we will just pretend they all do
+        // We want to have everything in terms of WEI, so we add 10 zeros at the end
+        return ((uint256(price) * ADDITIONAL_FEED_PRECISION) * _amount) / PRECISION;
+    }
 }
 
 // Layout of Contract:
