@@ -63,11 +63,12 @@ contract DSCEngine is ReentrancyGuard {
     // Events
     ///////////////////
     event CollateralDeposited(address indexed user, address indexed token, uint256 indexed amount);
-    event CollateralRedeemed(address indexed redeemFrom, address indexed redeemTo, address token, uint256 amount); // if redeemFrom != redeemedTo, then it was liquidated
+    event CollateralRedeemed(address indexed user, address token, uint256 amount);
 
     ///////////////////
     // Modifiers
     ///////////////////
+
     modifier MorethenZero(uint256 _amount) {
         if (_amount == 0) {
             revert DSCEngine__NeedAmountMorethenZero();
@@ -145,11 +146,49 @@ contract DSCEngine is ReentrancyGuard {
         mintDsc(amountDscToMint);
     }
 
-    function redeemCollateral() external {}
+    function redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral)
+        public
+        MorethenZero(amountCollateral)
+        nonReentrant
+    {
+        s_collateralDeposited[msg.sender][tokenCollateralAddress] -= amountCollateral;
+        emit CollateralRedeemed(msg.sender, tokenCollateralAddress, amountCollateral);
+
+        bool sucess = IERC20(tokenCollateralAddress).transfer(msg.sender, amountCollateral);
+
+        if (!sucess) {
+            revert DSCEngine__TransferFailed();
+        }
+        _revertIfHealthFactorBelowThreshold(msg.sender);
+    }
 
     function redeemCollateralAndBurnDSC() external {}
 
-    function burnDSC() external {}
+    /**
+     * @param tokenCollateralAddress: The ERC20 token address of the collateral you're depositing
+     * @param amountCollateral: The amount of collateral you're depositing
+     * @param amountDscToBurn: The amount of DSC you want to burn
+     * @notice This function will withdraw your collateral and burn DSC in one transaction
+     */
+    function redeemCollateralForDsc(address tokenCollateralAddress, uint256 amountCollateral, uint256 amountDscToBurn)
+        external
+    {
+        burnDSC(amountDscToBurn);
+        redeemCollateral(tokenCollateralAddress, amountCollateral);
+    }
+
+    function burnDSC(uint256 amount) public MorethenZero(amount) {
+        s_DSCMinted[msg.sender] -= amount;
+
+        bool sucess = i_dsc.transferFrom(msg.sender, address(this), amount);
+
+        if (!sucess) {
+            revert DSCEngine__TransferFailed();
+        }
+        i_dsc.burn(amount);
+
+        _revertIfHealthFactorBelowThreshold(msg.sender); // THIS IS NOT NEEDED
+    }
 
     function liquidate() external {}
 
