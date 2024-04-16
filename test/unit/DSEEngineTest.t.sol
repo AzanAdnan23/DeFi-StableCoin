@@ -7,6 +7,7 @@ import {DSCEngine} from "../../src/DSCEngine.sol";
 import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 import {DeployDSC} from "../../script/DeployDSC.s.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
+import {ERC20Mock} from "../mocks/ERC20Mock.sol";
 
 contract DSCEngineTest is Test {
     DSCEngine dsce;
@@ -21,7 +22,11 @@ contract DSCEngineTest is Test {
     address public wbtc;
     uint256 public deployerKey;
 
-    function setUp() public {
+    address public USER = makeAddr("Azan");
+
+    uint256 public constant AMOUNT_COLLATERAL = 10 ether;
+
+    function setUp() external {
         deployer = new DeployDSC();
 
         (dsc, dsce, helperConfig) = deployer.run();
@@ -37,5 +42,16 @@ contract DSCEngineTest is Test {
         uint256 expectedUSD = 40000e18;
         uint256 actualUSD = dsce._getUsdValue(weth, ethAmount);
         assertEq(actualUSD, expectedUSD);
+    }
+
+    // deposi collateral tests
+
+    function testRevertsIfCollateralisZero() public {
+        vm.startPrank(USER);
+        ERC20Mock(weth).approve(address(dsce), AMOUNT_COLLATERAL);
+
+        vm.expectRevert(DSCEngine.DSCEngine__NeedAmountMorethenZero.selector);
+        dsce.depositCollateral(weth, 0);
+        vm.stopPrank();
     }
 }
