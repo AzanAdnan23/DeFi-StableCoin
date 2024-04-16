@@ -26,6 +26,6 @@ contract DeployDSC is Script {
         DSCEngine dscEngine = new DSCEngine(tokenAddresses, priceFeedAddresses, address(dsc));
         dsc.transferOwnership(address(dscEngine));
         vm.stopBroadcast();
-        return (dsc, dscEngine, helperConfig);
+        return (dsc, dscEngine);
     }
 }
