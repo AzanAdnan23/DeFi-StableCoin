@@ -23,6 +23,7 @@ contract DSCEngineTest is Test {
     uint256 public deployerKey;
 
     address public USER = makeAddr("Azan");
+    uint256 public constant STARTING_USER_ERC20_BALANCE = 10 ether;
 
     uint256 public constant AMOUNT_COLLATERAL = 10 ether;
 
@@ -32,6 +33,9 @@ contract DSCEngineTest is Test {
         (dsc, dsce, helperConfig) = deployer.run();
 
         (ethUsdPriceFeed, btcUsdPriceFeed, weth, wbtc, deployerKey) = helperConfig.activeNetworkConfig();
+
+        ERC20Mock(weth).mint(USER, STARTING_USER_ERC20_BALANCE);
+        ERC20Mock(wbtc).mint(USER, STARTING_USER_ERC20_BALANCE);
     }
 
     /**
