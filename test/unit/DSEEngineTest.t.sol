@@ -14,18 +14,28 @@ contract DSCEngineTest is Test {
 
     DeployDSC deployer;
     HelperConfig helperConfig;
-    address ethUsdPriceFeed;
-    address weth;
+
+    address public ethUsdPriceFeed;
+    address public btcUsdPriceFeed;
+    address public weth;
+    address public wbtc;
+    uint256 public deployerKey;
 
     function setUp() public {
         deployer = new DeployDSC();
 
-        (dsc, dsce,helperConfig) = deployer.run();
+        (dsc, dsce, helperConfig) = deployer.run();
+
+        (ethUsdPriceFeed, btcUsdPriceFeed, weth, wbtc, deployerKey) = helperConfig.activeNetworkConfig();
     }
 
     /**
      * Price Test
      */
-
-    function testGetUSDValue() 
+    function testGetUSDValue() public {
+        uint256 ethAmount = 20e18;
+        uint256 expectedUSD = 40000e18;
+        uint256 actualUSD = dsce._getUsdValue(weth, ethAmount);
+        assertEq(actualUSD, expectedUSD);
+    }
 }
