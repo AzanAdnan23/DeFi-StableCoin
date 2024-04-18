@@ -207,11 +207,10 @@ contract DSCEngine is ReentrancyGuard {
         collateralValueInUsd = getAccountCollateralValueInUsd(user);
     }
 
-    /*
-    * Return how close a user is to liquidate
-    * If health factor is below 1, then user ican get liquidated1
-    */
-
+    /**
+     * Return how close a user is to liquidate
+     * If health factor is below 1, then user ican get liquidated1
+     */
     function _healthFactor(address user) private view returns (uint256) {
         (uint256 totalDscMinted, uint256 collateralValueInUsd) = _getAccountInfo(user);
 
