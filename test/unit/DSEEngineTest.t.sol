@@ -45,7 +45,14 @@ contract DSCEngineTest is Test {
     address[] public tokenAddresses;
     address[] public priceFeedAddresses;
 
-    function testRevertsIfTokenLenghtDoesNotMatchpriceFeeds() public {}
+    function testRevertsIfTokenLenghtDoesNotMatchpriceFeeds() public {
+        tokenAddresses.push(weth);
+        priceFeedAddresses.push(ethUsdPriceFeed);
+        priceFeedAddresses.push(btcUsdPriceFeed);
+
+        vm.expectRevert(DSCEngine.DSCEngine__TokenAndPriceFeedLengthMismatch.selector);
+        new DSCEngine(tokenAddresses, priceFeedAddresses, address(dsc));
+    }
 
     /////////////
     // Price Test
@@ -55,6 +62,14 @@ contract DSCEngineTest is Test {
         uint256 expectedUSD = 40000e18;
         uint256 actualUSD = dsce._getUsdValue(weth, ethAmount);
         assertEq(actualUSD, expectedUSD);
+    }
+
+    function testGetTokenAmountFromUsd() public {
+        uint256 usdAmount = 100 ether;
+        uint256 expectedWeth = 0.05 ether;
+
+        uint256 actualWeth = dsce.getTokenAmountFromUsd(weth, usdAmount);
+        assertEq(actualWeth, expectedWeth);
     }
     //////////////////////
     // deposi collateral tests
