@@ -38,17 +38,22 @@ contract DSCEngineTest is Test {
         ERC20Mock(wbtc).mint(USER, STARTING_USER_ERC20_BALANCE);
     }
 
-    /**
-     * Price Test
-     */
+    //////////////////////
+    // Constructor Test
+    //////////////////////
+
+    /////////////
+    // Price Test
+    ////////////
     function testGetUSDValue() public {
         uint256 ethAmount = 20e18;
         uint256 expectedUSD = 40000e18;
         uint256 actualUSD = dsce._getUsdValue(weth, ethAmount);
         assertEq(actualUSD, expectedUSD);
     }
-
+    //////////////////////
     // deposi collateral tests
+    //////////////////////
 
     function testRevertsIfCollateralisZero() public {
         vm.startPrank(USER);
