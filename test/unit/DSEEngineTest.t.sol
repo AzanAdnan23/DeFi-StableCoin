@@ -39,8 +39,13 @@ contract DSCEngineTest is Test {
     }
 
     //////////////////////
-    // Constructor Test
+    // Constructor Tests ////
     //////////////////////
+
+    address[] public tokenAddresses;
+    address[] public priceFeedAddresses;
+
+    function testRevertsIfTokenLenghtDoesNotMatchpriceFeeds() public {}
 
     /////////////
     // Price Test
