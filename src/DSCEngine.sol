@@ -36,6 +36,7 @@ contract DSCEngine is ReentrancyGuard {
     error DSCEngine__HealthFactorBelowThreshold(uint256 healthFactor);
     error DSCEngine__MintFailed();
     error DSCEngine__HealthFactorIsOk();
+    error DSCEngine__HealthFactorNotImproved();
 
     ///////////////////
     // State Variables //
@@ -210,6 +211,14 @@ contract DSCEngine is ReentrancyGuard {
         _redeemCollateral(collateral, totalCollateralToRedeem, user, msg.sender);
 
         _burnDsc(debtToCover, user, msg.sender);
+
+        uint256 endingUserHealthFactor = _healthFactor(user);
+
+        if (endingUserHealthFactor <= startingUserHealthFactor) {
+            revert DSCEngine__HealthFactorNotImproved();
+        }
+
+        _revertIfHealthFactorBelowThreshold(msg.sender);
     }
 
     function getHealthFactor() external {}
