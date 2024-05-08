@@ -1,0 +1,4 @@
+1. erc20 contract: dsc.approve(address(dsce), amountToMint);
+ERC20Mock(weth).approve(address(dsce), collateralToCover);
+
+2. Health Factor : testHealthFactorCanGoBelowOne

@@ -38,6 +38,9 @@ contract DSCEngineTest is Test {
     uint256 public constant MIN_HEALTH_FACTOR = 1e18;
     uint256 public constant LIQUIDATION_THRESHOLD = 50;
 
+    address public liquidator = makeAddr("liquidator");
+    uint256 public collateralToCover = 20 ether;
+
     event CollateralRedeemed(address indexed redeemFrom, address indexed redeemTo, address token, uint256 amount);
     // if redeemFrom != redeemedTo, then it was liquidated
 
@@ -278,7 +281,43 @@ contract DSCEngineTest is Test {
     ////////////////////////
     // healthFactor Tests //
     ////////////////////////
+    function testProperlyReportsHealthFactor() public depositedCollateralAndMintedDsc {
+        uint256 expectedHealthFactor = 100 ether;
+        uint256 healthFactor = dsce.getHealthFactor(USER);
+        // $100 minted with $20,000 collateral at 50% liquidation threshold
+        // means that we must have $200 collatareral at all times.
+        // 20,000 * 0.5 = 10,000
+        // 10,000 / 100 = 100 health factor
+        assertEq(healthFactor, expectedHealthFactor);
+    }
 
+    function testHealthFactorCanGoBelowOne() public depositedCollateralAndMintedDsc {
+        int256 ethUsdUpdatedPrice = 18e8; // 1 ETH = $18
+        // Rememeber, we need $200 at all times if we have $100 of debt
+
+        MockV3Aggregator(ethUsdPriceFeed).updateAnswer(ethUsdUpdatedPrice);
+
+        uint256 userHealthFactor = dsce.getHealthFactor(USER);
+        // 180*50 (LIQUIDATION_THRESHOLD) / 100 (LIQUIDATION_PRECISION) / 100 (PRECISION) = 90 / 100 (totalDscMinted) =
+        // 0.9
+        assert(userHealthFactor == 0.9 ether);
+    }
+    ///////////////////////
+    // Liquidation Tests //
+    ///////////////////////
+
+    function testCantLiquidateGoodHealthFactor() public depositedCollateralAndMintedDsc {
+        ERC20Mock(weth).mint(liquidator, collateralToCover);
+
+        vm.startPrank(liquidator);
+        ERC20Mock(weth).approve(address(dsce), collateralToCover);
+        dsce.depositCollateralAndMintDsc(weth, collateralToCover, amountToMint);
+        dsc.approve(address(dsce), amountToMint);
+
+        vm.expectRevert(DSCEngine.DSCEngine__HealthFactorIsOk.selector);
+        dsce.liquidate(weth, USER, amountToMint);
+        vm.stopPrank();
+    }
     // find the bug
     // coverage up by above 85 % without looking anyrhing
     // start with deposit
