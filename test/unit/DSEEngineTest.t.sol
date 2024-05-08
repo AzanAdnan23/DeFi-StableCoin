@@ -262,6 +262,23 @@ contract DSCEngineTest is Test {
         vm.stopPrank();
     }
 
+    function testCanRedeemDepositedCollateral() public {
+        vm.startPrank(USER);
+        ERC20Mock(weth).approve(address(dsce), amountCollateral);
+        dsce.depositCollateralAndMintDsc(weth, amountCollateral, amountToMint);
+        dsc.approve(address(dsce), amountToMint);
+        console.log("dsc balance: ", dsc.balanceOf(USER));
+        dsce.redeemCollateralForDsc(weth, amountCollateral, amountToMint);
+        vm.stopPrank();
+
+        uint256 userBalance = dsc.balanceOf(USER);
+        assertEq(userBalance, 0);
+    }
+
+    ////////////////////////
+    // healthFactor Tests //
+    ////////////////////////
+
     // find the bug
     // coverage up by above 85 % without looking anyrhing
     // start with deposit
