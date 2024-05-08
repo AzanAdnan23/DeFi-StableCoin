@@ -38,6 +38,9 @@ contract DSCEngineTest is Test {
     uint256 public constant MIN_HEALTH_FACTOR = 1e18;
     uint256 public constant LIQUIDATION_THRESHOLD = 50;
 
+    event CollateralRedeemed(address indexed redeemFrom, address indexed redeemTo, address token, uint256 amount);
+    // if redeemFrom != redeemedTo, then it was liquidated
+
     function setUp() external {
         deployer = new DeployDSC();
 
@@ -219,6 +222,34 @@ contract DSCEngineTest is Test {
         dsce.burnDSC(1);
     }
 
+    ///////////////////////////////////
+    // redeemCollateral Tests //
+    //////////////////////////////////
+
+    function testRevertsIfRedeemAmountIsZero() public {
+        vm.startPrank(USER);
+        ERC20Mock(weth).approve(address(dsce), amountCollateral);
+        dsce.depositCollateralAndMintDsc(weth, amountCollateral, amountToMint);
+        vm.expectRevert(DSCEngine.DSCEngine__NeedAmountMorethenZero.selector);
+        dsce.redeemCollateral(weth, 0);
+        vm.stopPrank();
+    }
+
+    function testCanRedeemCollateral() public depositedCollateral {
+        vm.startPrank(USER);
+        dsce.redeemCollateral(weth, amountCollateral);
+        uint256 userBalance = ERC20Mock(weth).balanceOf(USER);
+        assertEq(userBalance, amountCollateral);
+        vm.stopPrank();
+    }
+
+    function testEmitCollateralRedeemedWithCorrectArgs() public depositedCollateral {
+        vm.expectEmit(true, true, true, true, address(dsce));
+        emit CollateralRedeemed(USER, USER, weth, amountCollateral);
+        vm.startPrank(USER);
+        dsce.redeemCollateral(weth, amountCollateral);
+        vm.stopPrank();
+    }
     ///////////////////////////////////
     // redeemCollateralForDsc Tests //
     //////////////////////////////////
