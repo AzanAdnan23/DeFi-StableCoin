@@ -173,6 +173,11 @@ contract DSCEngine is ReentrancyGuard {
         redeemCollateral(tokenCollateralAddress, amountCollateral);
     }
 
+    /**
+     * @notice careful! You'll burn your DSC here! Make sure you want to do this...
+     * @dev you might want to use this if you're nervous you might get liquidated and want to just burn
+     * you DSC but keep your collateral in.
+     */
     function burnDSC(uint256 amount) public MorethenZero(amount) {
         _burnDsc(amount, msg.sender, msg.sender);
         _revertIfHealthFactorBelowThreshold(msg.sender); // THIS IS NOT NEEDED
@@ -220,8 +225,6 @@ contract DSCEngine is ReentrancyGuard {
 
         _revertIfHealthFactorBelowThreshold(msg.sender);
     }
-
-    function getHealthFactor() external {}
 
     ///////////////////
     // Internal Functions
@@ -341,6 +344,13 @@ contract DSCEngine is ReentrancyGuard {
         returns (uint256 totalDscMinted, uint256 collateralValueInUsd)
     {
         (totalDscMinted, collateralValueInUsd) = _getAccountInfo(user);
+    }
+
+    function getUsdValue(
+        address token,
+        uint256 amount // in WEI
+    ) external view returns (uint256) {
+        return _getUsdValue(token, amount);
     }
 
     function getPrecision() external pure returns (uint256) {

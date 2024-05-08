@@ -199,6 +199,22 @@ contract DSCEngineTest is Test {
         vm.stopPrank();
     }
 
+    function testCanBurnDsc() public depositedCollateralAndMintedDsc {
+        vm.startPrank(USER);
+        dsc.approve(address(dsce), amountToMint);
+        dsce.burnDSC(amountToMint);
+        vm.stopPrank();
+
+        uint256 userBalance = dsc.balanceOf(USER);
+        assertEq(userBalance, 0);
+    }
+
+    function testCantBurnMoreThanUserHas() public {
+        vm.prank(USER);
+        vm.expectRevert();
+        dsce.burnDSC(1);
+    }
+
     // find the bug
     // coverage up by above 85 % without looking anyrhing
     // start with deposit
