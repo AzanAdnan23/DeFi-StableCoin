@@ -8,6 +8,7 @@ import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 import {DeployDSC} from "../../script/DeployDSC.s.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {ERC20Mock} from "../mocks/ERC20Mock.sol";
+import {MockV3Aggregator} from "../mocks/MockV3Aggregator.sol";
 
 contract DSCEngineTest is Test {
     DSCEngine dsce;
@@ -26,6 +27,12 @@ contract DSCEngineTest is Test {
     uint256 public constant STARTING_USER_ERC20_BALANCE = 10 ether;
 
     uint256 public constant AMOUNT_COLLATERAL = 10 ether;
+    uint256 amountCollateral = 10 ether;
+
+    uint256 amountToMint = 100 ether;
+
+    uint256 public constant MIN_HEALTH_FACTOR = 1e18;
+    uint256 public constant LIQUIDATION_THRESHOLD = 50;
 
     function setUp() external {
         deployer = new DeployDSC();
@@ -122,6 +129,19 @@ contract DSCEngineTest is Test {
     // depositCollateralAndMintDsc Tests //
     ///////////////////////////////////////
 
+    function testRevertsIfMintedDscBreaksHealthFactor() public {
+        (, int256 price,,,) = MockV3Aggregator(ethUsdPriceFeed).latestRoundData();
+        amountToMint = (amountCollateral * (uint256(price) * dsce.getAdditionalFeedPrecision())) / dsce.getPrecision();
+
+        vm.startPrank(USER);
+        ERC20Mock(weth).approve(address(dsce), amountCollateral);
+
+        uint256 expectedHealthFactor =
+            dsce._calculateHealthFactor(amountToMint, dsce._getUsdValue(weth, amountCollateral));
+        vm.expectRevert(abi.encodeWithSelector(DSCEngine.DSCEngine__BreaksHealthFactor.selector, expectedHealthFactor));
+        dsce.depositCollateralAndMintDsc(weth, amountCollateral, amountToMint);
+        vm.stopPrank();
+    }
     // find the bug
     // coverage up by above 85 % without looking anyrhing
     // start with deposit
