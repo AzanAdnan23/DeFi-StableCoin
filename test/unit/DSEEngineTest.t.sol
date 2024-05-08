@@ -144,6 +144,14 @@ contract DSCEngineTest is Test {
         dsce.depositCollateralAndMintDsc(weth, amountCollateral, amountToMint);
         vm.stopPrank();
     }
+
+    modifier depositedCollateralAndMintedDsc() {
+        vm.startPrank(USER);
+        ERC20Mock(weth).approve(address(dsce), amountCollateral);
+        dsce.depositCollateralAndMintDsc(weth, amountCollateral, amountToMint);
+        vm.stopPrank();
+        _;
+    }
     // find the bug
     // coverage up by above 85 % without looking anyrhing
     // start with deposit
