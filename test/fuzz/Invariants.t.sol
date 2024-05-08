@@ -11,7 +11,7 @@ import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract OpenInvariants is StdInvariant, Test {
+contract Invariants is StdInvariant, Test {
     DSCEngine dsce;
     DecentralizedStableCoin dsc;
     DeployDSC deployer;
