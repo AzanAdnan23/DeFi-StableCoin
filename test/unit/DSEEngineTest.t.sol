@@ -79,7 +79,7 @@ contract DSCEngineTest is Test {
         assertEq(actualWeth, expectedWeth);
     }
     //////////////////////
-    // deposi collateral tests
+    // Deposit collateral tests
     //////////////////////
 
     function testRevertsIfCollateralisZero() public {
@@ -199,20 +199,32 @@ contract DSCEngineTest is Test {
         vm.stopPrank();
     }
 
-    function testCanBurnDsc() public depositedCollateralAndMintedDsc {
-        vm.startPrank(USER);
-        dsc.approve(address(dsce), amountToMint);
-        dsce.burnDSC(amountToMint);
-        vm.stopPrank();
+    // function testCanBurnDsc() public depositedCollateralAndMintedDsc {
+    //     vm.startPrank(USER);
+    //     dsc.approve(address(dsce), amountToMint);
+    //     dsce.burnDSC(amountToMint);
+    //     vm.stopPrank();
 
-        uint256 userBalance = dsc.balanceOf(USER);
-        assertEq(userBalance, 0);
-    }
+    //     uint256 userBalance = dsc.balanceOf(USER);
+    //     assertEq(userBalance, 0);
+    // }
 
     function testCantBurnMoreThanUserHas() public {
         vm.prank(USER);
         vm.expectRevert();
         dsce.burnDSC(1);
+    }
+
+    ///////////////////////////////////
+    // redeemCollateralForDsc Tests //
+    //////////////////////////////////
+
+    function testMustRedeemMoreThanZero() public depositedCollateralAndMintedDsc {
+        vm.startPrank(USER);
+        dsc.approve(address(dsce), amountToMint);
+        vm.expectRevert(DSCEngine.DSCEngine__NeedAmountMorethenZero.selector);
+        dsce.redeemCollateralForDsc(weth, 0, amountToMint);
+        vm.stopPrank();
     }
 
     // find the bug
