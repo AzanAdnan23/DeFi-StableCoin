@@ -7,8 +7,12 @@ import {DSCEngine} from "../../src/DSCEngine.sol";
 import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 import {DeployDSC} from "../../script/DeployDSC.s.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
+
 import {ERC20Mock} from "../mocks/ERC20Mock.sol";
 import {MockV3Aggregator} from "../mocks/MockV3Aggregator.sol";
+
+import {Test, console} from "forge-std/Test.sol";
+import {StdCheats} from "forge-std/StdCheats.sol";
 
 contract DSCEngineTest is Test {
     DSCEngine dsce;
@@ -199,15 +203,15 @@ contract DSCEngineTest is Test {
         vm.stopPrank();
     }
 
-    // function testCanBurnDsc() public depositedCollateralAndMintedDsc {
-    //     vm.startPrank(USER);
-    //     dsc.approve(address(dsce), amountToMint);
-    //     dsce.burnDSC(amountToMint);
-    //     vm.stopPrank();
+    function testCanBurnDsc() public depositedCollateralAndMintedDsc {
+        vm.startPrank(USER);
+        dsc.approve(address(dsce), amountToMint);
+        dsce.burnDSC(amountToMint);
+        vm.stopPrank();
 
-    //     uint256 userBalance = dsc.balanceOf(USER);
-    //     assertEq(userBalance, 0);
-    // }
+        uint256 userBalance = dsc.balanceOf(USER);
+        assertEq(userBalance, 0);
+    }
 
     function testCantBurnMoreThanUserHas() public {
         vm.prank(USER);
