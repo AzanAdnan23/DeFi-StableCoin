@@ -137,8 +137,10 @@ contract DSCEngineTest is Test {
         ERC20Mock(weth).approve(address(dsce), amountCollateral);
 
         uint256 expectedHealthFactor =
-            dsce._calculateHealthFactor(amountToMint, dsce._getUsdValue(weth, amountCollateral));
-        vm.expectRevert(abi.encodeWithSelector(DSCEngine.DSCEngine__BreaksHealthFactor.selector, expectedHealthFactor));
+            dsce.calculateHealthFactor(amountToMint, dsce._getUsdValue(weth, amountCollateral));
+        vm.expectRevert(
+            abi.encodeWithSelector(DSCEngine.DSCEngine__HealthFactorBelowThreshold.selector, expectedHealthFactor)
+        );
         dsce.depositCollateralAndMintDsc(weth, amountCollateral, amountToMint);
         vm.stopPrank();
     }
