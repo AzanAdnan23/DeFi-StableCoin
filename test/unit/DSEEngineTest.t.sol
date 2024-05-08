@@ -103,6 +103,11 @@ contract DSCEngineTest is Test {
         _;
     }
 
+    function testCanDepositCollateralWithoutMinting() public depositedCollateral {
+        uint256 userBalance = dsc.balanceOf(USER);
+        assertEq(userBalance, 0);
+    }
+
     function testCanDepositCollateralAndGetAccountInfo() public depositedCollateral {
         (uint256 totalDscMinted, uint256 collateralValueInUsd) = dsce.getAccountInformation(USER);
 
@@ -112,6 +117,10 @@ contract DSCEngineTest is Test {
         assertEq(totalDscMinted, expectedTotalDscMinted);
         assertEq(AMOUNT_COLLATERAL, expectedDeposittAmount);
     }
+
+    ///////////////////////////////////////
+    // depositCollateralAndMintDsc Tests //
+    ///////////////////////////////////////
 
     // find the bug
     // coverage up by above 85 % without looking anyrhing
