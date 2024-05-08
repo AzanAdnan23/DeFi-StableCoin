@@ -173,8 +173,6 @@ contract DSCEngineTest is Test {
     }
 
     function testRevertsIfMintAmountBreaksHealthFactor() public depositedCollateral {
-        // 0xe580cc6100000000000000000000000000000000000000000000000006f05b59d3b20000
-        // 0xe580cc6100000000000000000000000000000000000000000000003635c9adc5dea00000
         (, int256 price,,,) = MockV3Aggregator(ethUsdPriceFeed).latestRoundData();
         amountToMint = (amountCollateral * (uint256(price) * dsce.getAdditionalFeedPrecision())) / dsce.getPrecision();
 
@@ -187,6 +185,20 @@ contract DSCEngineTest is Test {
         dsce.mintDsc(amountToMint);
         vm.stopPrank();
     }
+
+    ///////////////////////////////////
+    // burnDsc Tests //
+    ///////////////////////////////////
+
+    function testRevertsIfBurnAmountIsZero() public {
+        vm.startPrank(USER);
+        ERC20Mock(weth).approve(address(dsce), amountCollateral);
+        dsce.depositCollateralAndMintDsc(weth, amountCollateral, amountToMint);
+        vm.expectRevert(DSCEngine.DSCEngine__NeedAmountMorethenZero.selector);
+        dsce.burnDSC(0);
+        vm.stopPrank();
+    }
+
     // find the bug
     // coverage up by above 85 % without looking anyrhing
     // start with deposit
