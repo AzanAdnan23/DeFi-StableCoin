@@ -114,5 +114,8 @@ contract DSCEngineTest is Test {
     }
 
     // find the bug
-    // coverage up by above 85 %
+    // coverage up by above 85 % without looking anyrhing
+    // start with deposit
+    // redeem
+    // then liquidation
 }

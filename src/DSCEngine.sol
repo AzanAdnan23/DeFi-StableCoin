@@ -250,6 +250,7 @@ contract DSCEngine is ReentrancyGuard {
     function _revertIfHealthFactorBelowThreshold(address user) internal view {
         uint256 userHealthFactor = _healthFactor(user);
         if (userHealthFactor < MIN_HEALTH_FACTOR) {
+            // __  < 1e18
             revert DSCEngine__HealthFactorBelowThreshold(userHealthFactor);
         }
     }
@@ -273,6 +274,7 @@ contract DSCEngine is ReentrancyGuard {
         // The returned value from Chainlink will be 1000 * 1e8
         // Most USD pairs have 8 decimals, so we will just pretend they all do
         // We want to have everything in terms of WEI, so we add 10 zeros at the end
+        // if 1 token = $1000, Chainlink returns 100000000000 for the price, which is 1000 * 10^8
         return ((uint256(price) * ADDITIONAL_FEED_PRECISION) * _amount) / PRECISION;
     }
 
@@ -320,6 +322,30 @@ contract DSCEngine is ReentrancyGuard {
         returns (uint256 totalDscMinted, uint256 collateralValueInUsd)
     {
         (totalDscMinted, collateralValueInUsd) = _getAccountInfo(user);
+    }
+
+    function getPrecision() external pure returns (uint256) {
+        return PRECISION;
+    }
+
+    function getAdditionalFeedPrecision() external pure returns (uint256) {
+        return ADDITIONAL_FEED_PRECISION;
+    }
+
+    function getLiquidationThreshold() external pure returns (uint256) {
+        return LIQUIDATION_THRESHOLD;
+    }
+
+    function getLiquidationBonus() external pure returns (uint256) {
+        return LIQUIDATION_BONUS;
+    }
+
+    function getLiquidationPrecision() external pure returns (uint256) {
+        return LIQUIDATION_PRECISION;
+    }
+
+    function getMinHealthFactor() external pure returns (uint256) {
+        return MIN_HEALTH_FACTOR;
     }
 }
 
