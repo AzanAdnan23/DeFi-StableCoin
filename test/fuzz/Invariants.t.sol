@@ -10,6 +10,8 @@ import {DSCEngine} from "../../src/DSCEngine.sol";
 import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
+
 import {Handler} from "./Handler.t.sol";
 
 contract Invariants is StdInvariant, Test {
@@ -32,8 +34,8 @@ contract Invariants is StdInvariant, Test {
 
     function invariant_protocolMustHaveMoreThanTotatlSupply() public view {
         uint256 totalSupply = dsc.totalSupply();
-        uint256 totalWethDeposited = IERC20(weth).balanceOf(address(dsce));
-        uint256 totalWbtcDeposited = IERC20(wbtc).balanceOf(address(dsce));
+        uint256 totalWethDeposited = ERC20Mock(weth).balanceOf(address(dsce));
+        uint256 totalWbtcDeposited = ERC20Mock(wbtc).balanceOf(address(dsce));
 
         uint256 wethValue = dsce.getUsdValue(weth, totalWethDeposited);
         uint256 wbtcValue = dsce.getUsdValue(wbtc, totalWbtcDeposited);
@@ -41,6 +43,6 @@ contract Invariants is StdInvariant, Test {
         console.log("WethDeposited: ", wethValue);
         console.log("WbtcDeposited: ", wbtcValue);
         console.log("totalSupply: ", totalSupply);
-        assert(totalSupply >= wethValue + wbtcValue);
+        assert(wethValue + wbtcValue >= totalSupply);
     }
 }
