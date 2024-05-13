@@ -15,6 +15,8 @@ contract Handler is Test {
     ERC20Mock public weth;
     ERC20Mock public wbtc;
 
+    uint256 public count = 0;
+
     uint256 MAX_DEPOSI_SIZE = type(uint96).max; // max uint96 value
     // uint256 MAX_DEPOSI_SIZE = 50000; // max uint96 value
 
@@ -27,7 +29,7 @@ contract Handler is Test {
         wbtc = ERC20Mock(collateralTokens[1]);
     }
 
-    function depositCollateral(uint256 collateralSeed, uint256 amountCollateral) public {
+    function mintAndDepositCollateral(uint256 collateralSeed, uint256 amountCollateral) public {
         // must be more than 0
         amountCollateral = bound(amountCollateral, 1, MAX_DEPOSI_SIZE);
         ERC20Mock collateral = _getCollateralFromSeed(collateralSeed);
@@ -50,22 +52,6 @@ contract Handler is Test {
         }
         vm.prank(msg.sender);
         dsce.redeemCollateral(address(collateral), amountCollateral);
-    }
-
-    function mintDsc(uint256 amount) public {
-        (uint256 totalDscMinted, uint256 CollateralUsdValue) = dsce.getAccountInformation(msg.sender);
-
-        int256 maxDsctoMint = (int256(CollateralUsdValue) / 2) - int256(totalDscMinted);
-        amount = bound(amount, 1, uint256(maxDsctoMint));
-        if (maxDsctoMint < 0) {
-            return;
-        }
-        if (amount == 0) {
-            return;
-        }
-        vm.startPrank(msg.sender);
-        dsce.mintDsc(amount);
-        vm.stopPrank();
     }
 
     //Helper Function

@@ -349,6 +349,10 @@ contract DSCEngine is ReentrancyGuard {
         return _getUsdValue(token, amount);
     }
 
+    function getDsc() external view returns (address) {
+        return address(i_dsc);
+    }
+
     function getPrecision() external pure returns (uint256) {
         return PRECISION;
     }
