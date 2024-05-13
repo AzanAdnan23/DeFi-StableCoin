@@ -1,29 +1,19 @@
 # Foundry DeFi Stablecoin
 
-[DSCEngine Example](https://sepolia.etherscan.io/address/0x091ea0838ebd5b7dda2f2a641b068d6d59639b98#code)
-[Decentralized Stablecoin Example](https://sepolia.etherscan.io/address/0xf30021646269007b0bdc0763fd736c6380602f2f#code)
-
-# About
-
 This project is meant to be a stablecoin where users can deposit WETH and WBTC in exchange for a token that will be pegged to the USD.
 
-- [Foundry DeFi Stablecoin](#foundry-defi-stablecoin)
-- [About](#about)
-- [Getting Started](#getting-started)
-  - [Requirements](#requirements)
-  - [Quickstart](#quickstart)
-    - [Optional Gitpod](#optional-gitpod)
-- [Updates](#updates)
-- [Usage](#usage)
-  - [Start a local node](#start-a-local-node)
-  - [Deploy](#deploy)
-  - [Deploy - Other Network](#deploy---other-network)
-  - [Testing](#testing)
-    - [Test Coverage](#test-coverage)
-- [Deployment to a testnet or mainnet](#deployment-to-a-testnet-or-mainnet)
-  - [Scripts](#scripts)
-  - [Estimate gas](#estimate-gas)
-- [Formatting](#formatting)
+1. Relative Stability: Anchored or Pegged →> $1.00
+
+   1. Chainlink Price feed.
+   2. Set a function to exchange ETH & BT →> $$$
+
+2. Stability Mechanism (Minting): Algorithmic (Decentralized)
+
+   1. People can only mint the stablecoin with enough collateral
+
+3. Collateral: Exogenous (Crypto)
+   1. WETH
+   2. WBTC
 
 # Getting Started
 
