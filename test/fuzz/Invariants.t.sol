@@ -20,13 +20,16 @@ contract Invariants is StdInvariant, Test {
     DeployDSC public deployer;
     HelperConfig public helperConfig;
     Handler public handler;
+
+    address public ethUsdPriceFeed;
+    address public btcUsdPriceFeed;
     address public weth;
     address public wbtc;
 
     function setUp() external {
         deployer = new DeployDSC();
         (dsc, dsce, helperConfig) = deployer.run();
-        (,, weth, wbtc,) = helperConfig.activeNetworkConfig();
+        (ethUsdPriceFeed, btcUsdPriceFeed, weth, wbtc,) = helperConfig.activeNetworkConfig();
         // targetContract(address(dsce));
         handler = new Handler(dsce, dsc);
         targetContract(address(handler));
