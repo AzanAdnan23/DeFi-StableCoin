@@ -13,13 +13,13 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Handler} from "./Handler.t.sol";
 
 contract Invariants is StdInvariant, Test {
-    DSCEngine dsce;
-    DecentralizedStableCoin dsc;
-    DeployDSC deployer;
-    HelperConfig helperConfig;
-    Handler handler;
-    address weth;
-    address wbtc;
+    DSCEngine public dsce;
+    DecentralizedStableCoin public dsc;
+    DeployDSC public deployer;
+    HelperConfig public helperConfig;
+    Handler public handler;
+    address public weth;
+    address public wbtc;
 
     function setUp() external {
         deployer = new DeployDSC();

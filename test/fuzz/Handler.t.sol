@@ -6,14 +6,17 @@ import {Test, console} from "forge-std/Test.sol";
 
 import {DSCEngine} from "../../src/DSCEngine.sol";
 import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
-import {ERC20Mock} from "../../test/mocks/ERC20Mock.sol";
+import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
+import {console} from "forge-std/console.sol";
 
 contract Handler is Test {
-    DSCEngine dsce;
-    DecentralizedStableCoin dsc;
-    ERC20Mock weth;
-    ERC20Mock wbtc;
-    uint256 MAX_DEPOSI_SIZE = type(uint96).max;
+    DSCEngine public dsce;
+    DecentralizedStableCoin public dsc;
+    ERC20Mock public weth;
+    ERC20Mock public wbtc;
+
+    uint256 MAX_DEPOSI_SIZE = type(uint96).max; // max uint96 value
+    // uint256 MAX_DEPOSI_SIZE = 50000; // max uint96 value
 
     constructor(DSCEngine _dsce, DecentralizedStableCoin _dsc) {
         dsce = _dsce;
@@ -25,8 +28,10 @@ contract Handler is Test {
     }
 
     function depositCollateral(uint256 collateralSeed, uint256 amountCollateral) public {
-        ERC20Mock collateral = _getCollateralFromSeed(collateralSeed);
+        // must be more than 0
         amountCollateral = bound(amountCollateral, 1, MAX_DEPOSI_SIZE);
+        ERC20Mock collateral = _getCollateralFromSeed(collateralSeed);
+
         vm.startPrank(msg.sender);
         collateral.mint(msg.sender, amountCollateral);
         collateral.approve(address(dsce), amountCollateral);
@@ -34,7 +39,7 @@ contract Handler is Test {
         vm.stopPrank();
     }
 
-    //Hekper Function
+    //Helper Function
     function _getCollateralFromSeed(uint256 collateralSeed) private view returns (ERC20Mock) {
         if (collateralSeed % 2 == 0) {
             return weth;
